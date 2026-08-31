@@ -7,7 +7,7 @@ import { verifySignature, parseWebhook } from "../dist/client.js";
 import { WaysdropError, inferBaseUrl, validateApiKey } from "../dist/errors.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const fixturesDir = join(__dirname, "../../waysdrop-api-spec/fixtures");
+const fixturesDir = join(__dirname, "fixtures");
 const signatureFixture = JSON.parse(
     readFileSync(join(fixturesDir, "signature.json"), "utf8"),
 );
