@@ -1,4 +1,22 @@
 import type {
+    FleetType,
+    CityLocation,
+    StateLocation,
+    AccountSummary,
+    MerchantWallet,
+    DeliveryDetail,
+    CountryLocation,
+    DeliveryPackage,
+    PricingResponse,
+    RouteDataResponse,
+    ExchangeRateResponse,
+    CreateDeliveryResponse,
+    CancelDeliveryResponse,
+    ListDeliveriesResponse,
+    ConvertCurrencyResponse,
+    PaymentCheckoutResponse,
+} from "./responses.js";
+import type {
     ApiGetRouteData,
     ListLocationsParams,
     ListDeliveriesParams,
@@ -33,27 +51,32 @@ export class WaysdropClient {
         this.fetchFn = options.fetch ?? fetch;
     }
 
-    listCountries(params: ListLocationsParams = {}) {
+    listCountries(
+        params: ListLocationsParams = {},
+    ): Promise<CountryLocation[]> {
         return this.get("/api/countries", params);
     }
 
-    listStates(params: ListLocationsParams = {}) {
+    listStates(params: ListLocationsParams = {}): Promise<StateLocation[]> {
         return this.get("/api/states", params);
     }
 
-    listCities(params: ListLocationsParams = {}) {
+    listCities(params: ListLocationsParams = {}): Promise<CityLocation[]> {
         return this.get("/api/cities", params);
     }
 
-    getRoute(body: ApiGetRouteData) {
+    getRoute(body: ApiGetRouteData): Promise<RouteDataResponse> {
         return this.post("/api/route", body);
     }
 
-    listFleetTypes() {
+    listFleetTypes(): Promise<FleetType[]> {
         return this.get("/api/fleet-types");
     }
 
-    getPricing(body: ApiCalculateRouteCost, currency?: string) {
+    getPricing(
+        body: ApiCalculateRouteCost,
+        currency?: string,
+    ): Promise<PricingResponse> {
         return this.post(
             "/api/pricing",
             this.withCurrency(body, currency),
@@ -61,7 +84,10 @@ export class WaysdropClient {
         );
     }
 
-    createDeliveryRequest(body: ApiCreateDeliveryRequest, currency?: string) {
+    createDeliveryRequest(
+        body: ApiCreateDeliveryRequest,
+        currency?: string,
+    ): Promise<CreateDeliveryResponse> {
         return this.post(
             "/api/request",
             this.withCurrency(body, currency),
@@ -69,11 +95,14 @@ export class WaysdropClient {
         );
     }
 
-    cancelDeliveryRequest(deliveryId: string) {
+    cancelDeliveryRequest(deliveryId: string): Promise<CancelDeliveryResponse> {
         return this.post(`/api/request/${deliveryId}/cancel`, {});
     }
 
-    createOrUpdatePackage(body: ApiCreateOrEditPackage, currency?: string) {
+    createOrUpdatePackage(
+        body: ApiCreateOrEditPackage,
+        currency?: string,
+    ): Promise<DeliveryPackage> {
         return this.post(
             "/api/package",
             this.withCurrency(body, currency),
@@ -85,15 +114,18 @@ export class WaysdropClient {
         await this.request("DELETE", `/api/package/${packageId}`);
     }
 
-    listPackages(currency?: string) {
+    listPackages(currency?: string): Promise<DeliveryPackage[]> {
         return this.get("/api/packages", {}, currency);
     }
 
-    getWallet(currency?: string) {
+    getWallet(currency?: string): Promise<MerchantWallet> {
         return this.get("/api/wallet", {}, currency);
     }
 
-    createPaymentCheckout(body: ApiCreatePaymentCheckout, currency?: string) {
+    createPaymentCheckout(
+        body: ApiCreatePaymentCheckout,
+        currency?: string,
+    ): Promise<PaymentCheckoutResponse> {
         return this.post(
             "/api/payments/checkout",
             this.withCurrency(body, currency),
@@ -101,24 +133,33 @@ export class WaysdropClient {
         );
     }
 
-    getAccount() {
+    getAccount(): Promise<AccountSummary> {
         return this.get("/api/account");
     }
 
-    getExchangeRate(from: string, to: string) {
+    getExchangeRate(from: string, to: string): Promise<ExchangeRateResponse> {
         return this.get("/api/exchange-rate", { from, to });
     }
 
-    convertCurrency(amount: number, from: string, to: string) {
+    convertCurrency(
+        amount: number,
+        from: string,
+        to: string,
+    ): Promise<ConvertCurrencyResponse> {
         return this.get("/api/convert", { amount, from, to });
     }
 
-    listDeliveries(params: ListDeliveriesParams = {}) {
+    listDeliveries(
+        params: ListDeliveriesParams = {},
+    ): Promise<ListDeliveriesResponse> {
         const { currency, ...rest } = params;
         return this.get("/api/deliveries", rest, currency);
     }
 
-    getDelivery(deliveryId: string, currency?: string) {
+    getDelivery(
+        deliveryId: string,
+        currency?: string,
+    ): Promise<DeliveryDetail> {
         return this.get(`/api/deliveries/${deliveryId}`, {}, currency);
     }
 

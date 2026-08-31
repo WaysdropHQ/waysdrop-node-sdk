@@ -1,2 +1,4 @@
+export type { WebhookEventName } from "./types.js";
 export { verifySignature, parseWebhook } from "./client.js";
-export type { WebhookEnvelope, WebhookEventName } from "./types.js";
+export { parseWebhookEvent, isWebhookEvent } from "./webhook-types.js";
+export type { WebhookEvent, WebhookEventMap } from "./webhook-types.js";
