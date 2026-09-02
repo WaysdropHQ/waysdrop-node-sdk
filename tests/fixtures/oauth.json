@@ -1,0 +1,33 @@
+{
+    "code_verifier": "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1JWDk8Z8Y",
+    "code_challenge": "Fn_XcfGbv5WpxFvWXee9ZhJAI2oDHG1uD6k09UjQcwU",
+    "code_challenge_method": "S256",
+    "clientId": "wdo_staging_a1b2c3d4e5f6789012345678901234ab",
+    "redirectUri": "https://example.com/oauth/callback",
+    "discovery": {
+        "issuer": "https://staging-api.waysdrop.com",
+        "authorization_endpoint": "https://staging-api.waysdrop.com/oauth/authorize",
+        "token_endpoint": "https://staging-api.waysdrop.com/oauth/token",
+        "userinfo_endpoint": "https://staging-api.waysdrop.com/oauth/userinfo",
+        "revocation_endpoint": "https://staging-api.waysdrop.com/oauth/revoke",
+        "response_types_supported": ["code"],
+        "grant_types_supported": ["authorization_code", "refresh_token"],
+        "subject_types_supported": ["public"],
+        "token_endpoint_auth_methods_supported": ["client_secret_post", "none"],
+        "code_challenge_methods_supported": ["S256", "plain"],
+        "scopes_supported": ["openid", "profile", "email", "store", "courier"]
+    },
+    "tokenResponse": {
+        "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test",
+        "token_type": "Bearer",
+        "expires_in": 3600,
+        "refresh_token": "wdor_a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234",
+        "scope": "openid profile email"
+    },
+    "userInfo": {
+        "sub": "0195a1b2-c3d4-7e5f-8a9b-0c1d2e3f4a5b",
+        "email": "user@example.com",
+        "email_verified": true,
+        "name": "Ada Lovelace"
+    }
+}

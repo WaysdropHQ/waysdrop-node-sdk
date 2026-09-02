@@ -2,7 +2,7 @@
 
 Official Waysdrop **Partner API** SDK for Node.js and TypeScript.
 
-Covers all 18 `/api/*` endpoints, typed responses, and outbound webhook verification. OAuth (Sign in with Waysdrop) is planned as a separate module in v2.
+Covers all 18 `/api/*` endpoints, typed responses, and outbound webhook verification. OAuth (Sign in with Waysdrop) ships as a **separate import** — see [OAuth (v1.1)](#oauth-v11) below.
 
 ## Install
 
@@ -262,6 +262,37 @@ try {
 ## Types
 
 All response types are exported from `@waysdrop/sdk`: `AccountSummary`, `PricingResponse`, `DeliveryDetail`, `WebhookEvent`, etc. Request body shapes live in `ApiCreateDeliveryRequest`, `ApiCalculateRouteCost`, and related types.
+
+---
+
+## OAuth (v1.1)
+
+Sign in with Waysdrop — separate from the Partner API client:
+
+```typescript
+import { OAuthClient, generatePkcePair } from "@waysdrop/sdk/oauth";
+
+const oauth = new OAuthClient({
+    clientId: "wdo_staging_…",
+    clientSecret: "wdos_…", // confidential apps only
+    redirectUri: "https://example.com/oauth/callback",
+});
+
+const pkce = generatePkcePair();
+const url = oauth.buildAuthorizeUrl({
+    scope: "openid profile email",
+    pkce,
+    state: "csrf",
+});
+// Redirect browser → after callback, exchange code:
+const tokens = await oauth.exchangeCode({
+    code,
+    codeVerifier: pkce.codeVerifier,
+});
+const user = await oauth.getUserInfo(tokens.access_token);
+```
+
+See `examples/oauth/` and [OAuth docs](https://docs.waysdrop.com/get-started/oauth).
 
 ---
 

@@ -1,6 +1,6 @@
 {
     "name": "@waysdrop/sdk",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "description": "Official Waysdrop Partner API SDK for Node.js",
     "type": "module",
     "main": "./dist/index.js",
@@ -13,6 +13,10 @@
         "./webhooks": {
             "types": "./dist/webhooks.d.ts",
             "import": "./dist/webhooks.js"
+        },
+        "./oauth": {
+            "types": "./dist/oauth.d.ts",
+            "import": "./dist/oauth.js"
         }
     },
     "files": [
