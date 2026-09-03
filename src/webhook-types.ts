@@ -8,6 +8,7 @@ import type { DeliveryType, GeoLocation, RouteType } from "./responses.js";
 export type DeliveryWebhookBase = {
     deliveryId: string;
     trackingId: string;
+    externalReference?: string | null;
     type?: DeliveryType;
     status?: DeliveryStatus | string;
     routeType?: RouteType;
@@ -56,9 +57,21 @@ export type PaymentReceivedData = {
     amountDisplay?: DisplayMoney;
     currencyCode?: string;
     merchantReference?: string;
+    externalReference?: string | null;
     reference?: string;
     customerEmail?: string;
     receivedAt?: string;
+};
+
+export type RefundProcessedData = {
+    deliveryId?: string | null;
+    trackingId?: string | null;
+    externalReference?: string | null;
+    refundAmount?: string | null;
+    refundSource?: string | null;
+    refundKind?: string | null;
+    reference?: string | null;
+    processedAt?: string;
 };
 
 export type OrderWebhookData = {
@@ -99,6 +112,7 @@ export type WebhookEventMap = {
     "delivery.reassignment.requested": ReassignmentWebhookData;
     "delivery.reassignment.collected": ReassignmentWebhookData;
     "payment.received": PaymentReceivedData;
+    "refund.processed": RefundProcessedData;
     "order.created": OrderWebhookData;
     "order.cancelled": OrderWebhookData;
     "order.confirmed": OrderWebhookData;

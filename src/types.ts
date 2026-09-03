@@ -77,6 +77,7 @@ export type ApiCreateDeliveryRequest = ApiCalculateRouteCost & {
     courierSelection: CourierMatching;
     courierId?: string;
     callbackUrl?: string;
+    externalReference?: string;
 };
 
 export type ApiCreateOrEditPackage = {
@@ -96,6 +97,7 @@ export type ApiCreatePaymentCheckout = {
     amount: number;
     customerEmail: string;
     merchantReference?: string;
+    externalReference?: string;
     currencyCode?: string;
     inputCurrency?: string;
     callbackUrl?: string;
@@ -107,6 +109,7 @@ export type ListDeliveriesParams = {
     page?: number;
     limit?: number;
     currency?: string;
+    externalReference?: string;
 };
 
 export type ListLocationsParams = {
@@ -130,6 +133,7 @@ export type WebhookEventName =
     | "delivery.reassignment.requested"
     | "delivery.reassignment.collected"
     | "payment.received"
+    | "refund.processed"
     | "order.created"
     | "order.cancelled"
     | "order.confirmed"

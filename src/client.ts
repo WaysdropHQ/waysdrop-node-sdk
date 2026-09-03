@@ -163,6 +163,14 @@ export class WaysdropClient {
         return this.get(`/api/deliveries/${deliveryId}`, {}, currency);
     }
 
+    getPaymentByExternalReference(
+        externalReference: string,
+    ): Promise<Record<string, unknown>> {
+        return this.get(
+            `/api/payments/by-external-reference/${encodeURIComponent(externalReference)}`,
+        );
+    }
+
     private withCurrency<T extends Record<string, unknown>>(
         body: T,
         currency?: string,

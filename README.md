@@ -1,8 +1,8 @@
 # @waysdrop/sdk
 
-Official Waysdrop **Partner API** SDK for Node.js and TypeScript.
+Official Waysdrop SDK for Node.js and TypeScript.
 
-Covers all 18 `/api/*` endpoints, typed responses, and outbound webhook verification. OAuth (Sign in with Waysdrop) ships as a **separate import** — see [OAuth (v1.1)](#oauth-v11) below.
+Covers the **Partner API** (`/api/*`), outbound webhook verification, and **OAuth** (Sign in with Waysdrop). OAuth ships as a [separate import](#oauth-sign-in-with-waysdrop) and does not change the Partner API client.
 
 ## Install
 
@@ -14,12 +14,32 @@ Requires **Node.js 18+** (uses native `fetch`).
 
 ## Authentication
 
-Every request sends your API key in the `api-key` header. Keys look like `wsp_live_<64 hex>` or `wsp_staging_<64 hex>` and are created in the [API dashboard](https://api-dashboard.waysdrop.com).
+Every request sends your API key in the `api-key` header. Keys are created in the [API dashboard](https://api-dashboard.waysdrop.com).
 
-| Key prefix     | Default base URL                   |
-| -------------- | ---------------------------------- |
-| `wsp_staging_` | `https://staging-api.waysdrop.com` |
-| `wsp_live_`    | `https://api.waysdrop.com`         |
+| Key type         | Prefix                                        | Default base URL                                                                |
+| ---------------- | --------------------------------------------- | ------------------------------------------------------------------------------- |
+| Secret (server)  | `wsp_live_` / `wsp_staging_` + 64 hex         | staging → `https://staging-api.waysdrop.com`, live → `https://api.waysdrop.com` |
+| Public (browser) | `wsp_pub_live_` / `wsp_pub_staging_` + 64 hex | same                                                                            |
+
+```typescript
+import { inferKeyType } from "@waysdrop/sdk";
+
+inferKeyType(process.env.WAYSDROP_API_KEY!); // "secret" | "public"
+```
+
+### Public API keys (v1.2+)
+
+Public keys work in the browser on quote/geo and payment routes. Configure **allowed origins** in the dashboard.
+
+| Route                                                   | Use                               |
+| ------------------------------------------------------- | --------------------------------- |
+| `GET /api/countries`, `states`, `cities`, `fleet-types` | Location data                     |
+| `POST /api/route`, `POST /api/pricing`                  | Quote                             |
+| `GET /api/exchange-rate`, `GET /api/convert`            | FX                                |
+| `POST /api/payments/checkout`                           | Collect payment (hosted checkout) |
+| `GET /api/payments/by-external-reference/:ref`          | Payment lookup                    |
+
+Deliveries, wallet, packages, and account still require the **secret** key on your backend.
 
 ## Client
 
@@ -168,19 +188,28 @@ const detail = await client.getDelivery(list.data[0].id, "NGN");
 
 ### Wallet & payments
 
-| SDK method                               | HTTP                          | Returns                   |
-| ---------------------------------------- | ----------------------------- | ------------------------- |
-| `getWallet(currency?)`                   | `GET /api/wallet`             | `MerchantWallet`          |
-| `createPaymentCheckout(body, currency?)` | `POST /api/payments/checkout` | `PaymentCheckoutResponse` |
+| SDK method                                         | HTTP                                           | Returns                   |
+| -------------------------------------------------- | ---------------------------------------------- | ------------------------- |
+| `getWallet(currency?)`                             | `GET /api/wallet`                              | `MerchantWallet`          |
+| `createPaymentCheckout(body, currency?)`           | `POST /api/payments/checkout`                  | `PaymentCheckoutResponse` |
+| `getPaymentByExternalReference(externalReference)` | `GET /api/payments/by-external-reference/:ref` | payment / deposit summary |
+
+Pass `externalReference` (max 128 chars) on checkout and delivery create for idempotent reconciliation.
 
 ```typescript
 const wallet = await client.getWallet("NGN");
 
 const checkout = await client.createPaymentCheckout(
-    { amount: 10000, email: "customer@example.com" },
+    {
+        amount: 10000,
+        customerEmail: "customer@example.com",
+        externalReference: "order-123",
+    },
     "NGN",
 );
 // checkout.authorization_url or checkout.checkout_url
+
+const payment = await client.getPaymentByExternalReference("order-123");
 ```
 
 ---
@@ -237,7 +266,7 @@ app.post(
 );
 ```
 
-Supported events include `p2p.delivery.created`, `p2p.delivery.cancelled`, `delivery.*` lifecycle events, `payment.received`, and `order.*` — see [Waysdrop webhook docs](https://docs.waysdrop.com/get-started/webhooks).
+Supported events include `p2p.delivery.created`, `p2p.delivery.cancelled`, `delivery.*` lifecycle events, `payment.received`, `refund.processed`, and `order.*` — see [Waysdrop webhook docs](https://docs.waysdrop.com/get-started/webhooks).
 
 ---
 
@@ -265,26 +294,37 @@ All response types are exported from `@waysdrop/sdk`: `AccountSummary`, `Pricing
 
 ---
 
-## OAuth (v1.1)
+## OAuth (Sign in with Waysdrop)
 
-Sign in with Waysdrop — separate from the Partner API client:
+OAuth is **separate from the Partner API** — import from `@waysdrop/sdk/oauth`. Client IDs look like `wdo_live_<32 hex>` or `wdo_staging_<32 hex>`. Confidential apps also use a client secret (`wdos_…`).
+
+| Method                                         | Description                                                      |
+| ---------------------------------------------- | ---------------------------------------------------------------- |
+| `getDiscovery()`                               | OpenID configuration (`/oauth/.well-known/openid-configuration`) |
+| `buildAuthorizeUrl({ scope?, state?, pkce? })` | Authorization URL for browser redirect                           |
+| `exchangeCode({ code, codeVerifier? })`        | Authorization code → tokens                                      |
+| `refreshToken(refreshToken)`                   | Refresh access token                                             |
+| `revokeToken(token)`                           | Revoke access or refresh token                                   |
+| `getUserInfo(accessToken)`                     | User profile (`sub`, `email`, profiles, …)                       |
+
+PKCE helpers: `generatePkcePair()`, `generateCodeVerifier()`, `generateCodeChallenge()`.
 
 ```typescript
 import { OAuthClient, generatePkcePair } from "@waysdrop/sdk/oauth";
 
 const oauth = new OAuthClient({
-    clientId: "wdo_staging_…",
-    clientSecret: "wdos_…", // confidential apps only
+    clientId: process.env.WAYSDROP_OAUTH_CLIENT_ID!,
+    clientSecret: process.env.WAYSDROP_OAUTH_CLIENT_SECRET, // confidential apps only
     redirectUri: "https://example.com/oauth/callback",
 });
 
 const pkce = generatePkcePair();
-const url = oauth.buildAuthorizeUrl({
+const authorizeUrl = oauth.buildAuthorizeUrl({
     scope: "openid profile email",
     pkce,
-    state: "csrf",
+    state: "csrf-token",
 });
-// Redirect browser → after callback, exchange code:
+// Redirect browser → on callback ?code=…&state=…
 const tokens = await oauth.exchangeCode({
     code,
     codeVerifier: pkce.codeVerifier,
@@ -292,7 +332,9 @@ const tokens = await oauth.exchangeCode({
 const user = await oauth.getUserInfo(tokens.access_token);
 ```
 
-See `examples/oauth/` and [OAuth docs](https://docs.waysdrop.com/get-started/oauth).
+OAuth token/userinfo responses are **raw JSON** (not the Partner API `{ success, data }` envelope). Errors throw `OAuthError`.
+
+See `examples/oauth/` and [OAuth docs](https://docs.waysdrop.com/get-started/oauth). Protocol spec: [waysdrop-api-spec `openapi/oauth-protocol.yaml`](https://github.com/WaysdropHQ/waysdrop-api-spec).
 
 ---
 
